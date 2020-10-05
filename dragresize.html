@@ -1,0 +1,244 @@
+<html>
+<head>
+</head>
+<style>
+body {
+
+    padding:10px;
+}
+#canvas {
+    border:1px solid red;
+    background-color: aqua;
+    margin-left: 450px;
+}
+h1{
+    text-align: center;
+}
+</style>
+<body>
+<h1>DRAG  AND RESIZE</h1>
+<canvas id="canvas" width=600 height=600></canvas>
+</body>
+<script>
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
+var offsetX = canvas.offsetLeft;
+var offsetY = canvas.offsetTop;
+var startX;
+var startY;
+var oldx,oldy;
+//var slopeang=-30;
+var pi2 = Math.PI * 2;
+var anchorradius = 8;
+var radiussquare = anchorradius * anchorradius;
+var draggingResizer ;
+var rectanglex = 50;
+var rectangley = 50;
+var rectwidth, rectheight, recttop, rectbottom;
+var draggingrect = false;
+var startX;
+var startY;
+rectwidth = 100;
+rectheight = 100;
+recttop = rectanglex + rectwidth;
+rectbottom = rectangley + rectheight;
+draw();
+
+function draw() {
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "blue";
+ ctx.beginPath();
+ ctx.rect(rectanglex,rectangley,rectwidth,rectheight);
+ ctx.fill(); 
+ ctx.closePath();
+        drawanchors(rectanglex, rectangley);
+        drawanchors(recttop, rectangley);
+        drawanchors(recttop, rectbottom);
+        drawanchors(rectanglex, rectbottom);
+      //  drawanchors(rectanglex + rectwidth/2 , rectangley);
+    
+        ctx.beginPath();
+        ctx.moveTo(rectanglex, rectangley);
+        ctx.lineTo(recttop, rectangley);
+        ctx.lineTo(recttop, rectbottom);
+        ctx.lineTo(rectanglex, rectbottom);
+        ctx.closePath();
+        ctx.stroke();
+    
+}
+
+function drawanchors(x, y) {
+    ctx.fillStyle = "red";
+    ctx.beginPath();
+    ctx.arc(x, y, anchorradius, 0, pi2, false);
+    ctx.closePath();
+    ctx.fill();
+}
+
+function anchortest(x, y) {
+
+    var dx, dy;
+
+    dx = x - rectanglex;
+    dy = y - rectangley;
+    if (dx * dx + dy * dy <= radiussquare) {
+        return (0);
+    }
+ 
+    dx = x - recttop;
+    dy = y - rectangley;
+    if (dx * dx + dy * dy <= radiussquare) {
+        return (1);
+    }
+  
+    dx = x - recttop;
+    dy = y - rectbottom;
+    if (dx * dx + dy * dy <= radiussquare) {
+        return (2);
+    }
+  
+    dx = x - rectanglex;
+    dy = y - rectbottom;
+    if (dx * dx + dy * dy <= radiussquare) {
+        return (3);
+    }
+  /*  dx = x-recttop+(rectwidth/2);
+    dy = y - rectangley;
+    if (dx * dx + dy * dy <= radiussquare) {
+        return (4);
+    } */
+    return (-1);
+
+}
+
+
+function hitImage(x, y) {
+    return (x > rectanglex && x < rectanglex + rectwidth && y > rectangley && y < rectangley + rectheight);
+}
+
+
+function mousedown(e) {
+    oldx = parseInt(e.clientX - offsetX);
+    oldy = parseInt(e.clientY - offsetY);
+    length = oldx*oldx + oldy*oldy;
+    length = Math.sqrt(length);
+ /*  if(slopeang!=-30){
+    startX = oldx + length * Math.cos( slopeang-(Math.PI/2));
+        startY = oldy + length * Math.sin( slopeang-(Math.PI/2));}
+        else{  */
+       startX = oldx;
+       startY = oldy;
+ // }
+ //   startX = parseInt(e.clientX - offsetX);
+   // startY = parseInt(e.clientY - offsetY);
+    draggingResizer = anchortest(startX, startY);
+    draggingrect = (draggingResizer < 0) && (hitImage(startX, startY));
+}
+
+function mouseup(e) {
+    draggingResizer = -1;
+    draggingrect = false;
+    draw();
+}
+
+function mouseout(e) {
+    mouseup(e);
+}
+
+function mousemove(e) {
+
+    if (draggingResizer > -1) {
+
+        oldx = parseInt(e.clientX - offsetX);
+    oldy = parseInt(e.clientY - offsetY);
+    length = oldx*oldx + oldy*oldy;
+    length = Math.sqrt(length);
+  /* if(slopeang!=-30){
+    mouseX = oldx + length * Math.cos(slopeang-(Math.PI/2));
+        mouseY = oldy + length * Math.sin(slopeang-(Math.PI/2));
+    alert(mouseY);}
+        else{ */
+       mouseX = oldx;
+       mouseY = oldy;
+  // }
+       
+        switch (draggingResizer) {
+            case 0:
+                rectanglex = mouseX;
+                rectwidth = recttop - mouseX;
+                rectangley = mouseY;
+                rectheight = rectbottom - mouseY;
+                break;
+            case 1:
+                rectangley = mouseY;
+                rectwidth = mouseX - rectanglex;
+                rectheight = rectbottom - mouseY;
+                break;
+            case 2:
+                rectwidth = mouseX - rectanglex;
+                rectheight = mouseY - rectangley;
+                break;
+            case 3:
+                rectanglex = mouseX;
+                rectwidth = recttop - mouseX;
+                rectheight = mouseY - rectangley;
+                break;
+           /* case 4:
+                ctx.setTransform(1,0,0,1,0,0);
+                slopeang = (mouseY-(rectangley + (rectheight/2)))/(mouseX-(rectanglex + (rectwidth/2))) ;
+               
+                slopeang = Math.atan(slopeang);
+               slopeang = slopeang+ 1*(Math.PI/2)
+                if(mouseX <= (rectanglex +  rectwidth/2))
+                {
+                    slopeang = slopeang+Math.PI;
+                }
+                ctx.translate(rectanglex+rectwidth/2,rectangley+rectheight/2);
+                ctx.rotate(slopeang);
+               ctx.translate(-rectanglex-rectwidth/2,-rectangley-rectheight/2);
+               break; */
+        }
+
+        if(rectwidth<25){rectwidth=25;}
+        if(rectheight<25){rectheight=25;}
+
+        recttop = rectanglex + rectwidth;
+        rectbottom = rectangley + rectheight;
+
+        draw();
+
+    } else if (draggingrect) {
+
+
+        oldx = parseInt(e.clientX - offsetX);
+    oldy = parseInt(e.clientY - offsetY);
+    length = oldx*oldx + oldy*oldy;
+    length = Math.sqrt(length);
+   /*if(slopeang!=-30){
+    mouseX = oldx + length * Math.cos( slopeang-(Math.PI/2));
+        mouseY = oldy + length * Math.sin( slopeang-(Math.PI/2));
+   }
+   else{ */
+       mouseX = oldx;
+       mouseY = oldy;
+ //  }
+        var dx = mouseX - startX;
+        var dy = mouseY - startY;
+        rectanglex += dx;
+        rectangley += dy;
+        recttop += dx;
+        rectbottom += dy;
+        startX = mouseX;
+        startY = mouseY;
+        draw();
+    }
+}
+
+canvas.onmousedown = mousedown;
+canvas.onmousemove = mousemove;
+canvas.onmouseup = mouseup;
+canvas.onmouseout =  mouseout 
+
+</script>
+</html>
